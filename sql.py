@@ -33,6 +33,60 @@ class UserTable(object):
         self.cursor.execute(raw_sql, (self.name, self.email, self.ph_no))
         self.con.commit()
 
+    def get_user(self):
+        sql_query = "SELECT * FROM  {} WHERE userId={}"
+        raw_query = sql_query.format(USER_TABLE, self.id)
+        print(raw_query)
+        self.cursor.execute(raw_query)
+        
+        return self.cursor.fetchone()
+
+
+class TripTable(object):
+    """
+    Mapping trip table with python class
+    """
+    def __init__(self, id=None, name=None):
+        self.trip_id, self.trip_name = id, name
+        self.con = Connection()
+        self.cursor = self.con.get_cursor()
+
+    def insert(self):
+        sql_query = "INSERT INTO {}({}) VALUES (%s)"
+        raw_query = sql_query.format(TRIP_TABLE, 'tripName')
+        self.cursor.execute(raw_query, (self.trip_name,))
+        self.con.commit()
+
+    def get_trip(self):
+        sql_query = "SELECT * FROM {} WHERE tripId={}"
+        raw_query = sql_query.format(TRIP_TABLE, self.trip_id)
+        self.cursor.execute(raw_query)
+        return self.cursor.fetchone()
+
+
+class UserBalanceTable(object):
+    """
+    Mapping SQL table user balance with python class
+    """
+    def __init__(self, ub_id=None, user_id=None, trip_id=None, balance=None):
+        self.ub_id = ub_id
+        self.user_id = user_id
+        self.trip_id = trip_id
+        self.balance = balance
+        self.con = Connection()
+        self.cursor = self.con.get_cursor()
+
+    def insert(self):
+        sql_query = "INSERT INTO {}({},{},{}) VALUES(%s, %s, %s)"
+        raw_query = sql_query.format(USER_BAL_TABLE, 'balance','userId','tripId')
+        self.cursor.execute(raw_query, (self.balance, self.user_id, self.trip_id,))
+        self.con.commit()
+
+    def get_user_balance(self):
+        pass
+
+    def get_trip_balance(self):
+        pass
 
 
 if __name__ == "__main__":
