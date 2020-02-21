@@ -98,16 +98,44 @@ class UserBalanceTable(object):
         self.cursor = self.con.get_cursor()
 
     def insert(self):
-        sql_query = "INSERT INTO {}({},{},{}) VALUES(%s, %s, %s)"
-        raw_query = sql_query.format(USER_BAL_TABLE, 'balance','userId','tripId')
-        self.cursor.execute(raw_query, (self.balance, self.user_id, self.trip_id,))
+        if self.if_exists():
+            self.update_user_balance(balance, user_id, trip_id)
+        else:
+            sql_query = "INSERT INTO {}({},{},{}) VALUES(%s, %s, %s)"
+            raw_query = sql_query.format(USER_BAL_TABLE, 'balance','userId','tripId')
+            self.cursor.execute(raw_query, (self.balance, self.user_id, self.trip_id,))
+            self.con.commit()
+
+    def if_exists(self, user_id, trip_id):
+        sql_query = "SELECT * FROM {} WHERE userId={} AND tripId={}"
+        raw_query = sql_query.format(USER_BAL_TABLE, user_id, trip_id)
+        self.cursor.execute(raw_query)
+        return True if self.cursor.fetchall() else False
+
+    def update_user_balance(self, balance, user_id, trip_id):
+        balance = self.get_user_balance(user_id, trip_id)[0] + balance
+        print("Balance +++++++++++++++++++++++++++     {}".format(balance))
+        sql_query = "UPDATE {} SET balance={} WHERE userId={} AND tripId={}"
+        raw_query = sql_query.format(USER_BAL_TABLE, balance, user_id, trip_id)
+        self.cursor.execute(raw_query)
         self.con.commit()
 
-    def get_user_balance(self):
-        pass
+    def get_user_balance(self, user_id, trip_id):
+        sql_query = "SELECT balance from {} WHERE userId={} AND tripId={}"
+        raw_query = sql_query.format(USER_BAL_TABLE, user_id, trip_id)
+        self.cursor.execute(raw_query)
+        return self.cursor.fetchone()
 
-    def get_trip_balance(self):
-        pass
+
+    def get_all_trip_users(self, trip_id):
+        trip_sql = "SELECT userId, balance from {} WHERE tripId={}"
+        raw_trip_sql = trip_sql.format(USER_BAL_TABLE, trip_id)
+        self.cursor.execute(raw_trip_sql)
+        all_balance = []
+        for bal in self.cursor.fetchall():
+            user_obj = UserTable(user_id=bal[0])
+            all_balance.append({"name": user_obj.get_user()[1], "balance": bal[1]})
+        return all_balance
 
 
 if __name__ == "__main__":
